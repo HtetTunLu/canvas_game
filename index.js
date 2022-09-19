@@ -5,9 +5,19 @@ canvas.width = innerWidth;
 canvas.height = innerHeight;
 
 const scoreEl = document.querySelector("#scoreEl");
+const lvlEl = document.querySelector("#lvlEl");
 const startGameBtn = document.querySelector("#startGameBtn");
+const restartGameBtn = document.querySelector("#restartGameBtn");
 const modalEl = document.querySelector("#modalEl");
+const pauseModalEl = document.querySelector("#pauseModalEl");
+const resumeGameBtn = document.querySelector("#resumeGameBtn");
 const bigScoreEl = document.querySelector("#bigScoreEl");
+const pauseGameBtn = document.querySelector("#pauseGameBtn");
+const countEl = document.querySelector("#countEl");
+pauseModalEl.style.display = "none";
+if (!localStorage.getItem("data")) {
+  restartGameBtn.style.display = "none";
+}
 
 class Player {
   constructor(x, y, radius, color) {
@@ -109,49 +119,67 @@ let player = new Player(x, y, 10, "white");
 let projectiles = [];
 let enemies = [];
 let particles = [];
+let pause = false;
+let animationId;
+let score = 0;
+let level = 1;
+let scorePerLvl = 2000;
 
-function init() {
+function init(flg) {
   player = new Player(x, y, 10, "white");
   projectiles = [];
   enemies = [];
   particles = [];
-  score = 0;
-  scoreEl.innerHTML = score
-  bigScoreEl.innerHTML = score
+  score =
+    flg === "tryAgain"
+      ? JSON.parse(localStorage.getItem("data")).currentScore
+      : 0;
+  level =
+    flg === "tryAgain"
+      ? JSON.parse(localStorage.getItem("data")).currentLevel
+      : 1;
+  scoreEl.innerHTML = score;
+  lvlEl.innerHTML = level;
+  bigScoreEl.innerHTML = score;
 }
 
 function spawnEnemies() {
   setInterval(() => {
-    const radius = Math.random() * (30 - 4) + 4;
-    let x;
-    let y;
-    if (Math.random() < 0.5) {
-      x = Math.random() < 0.5 ? 0 - radius : canvas.width + radius;
-      // y = Math.random() < 0.5 ? 0 - radius : canvas.height + radius;
-      y = Math.random() * canvas.height;
-    } else {
-      x = Math.random() * canvas.width;
-      // x = Math.random() < 0.5 ? 0 - radius : canvas.width + radius;
-      y = Math.random() < 0.5 ? 0 - radius : canvas.height + radius;
-    }
-    // randomize color
-    const color = `hsl(${Math.random() * 360}, 50%, 50%)`;
+    if (!pause) {
+      const radius = Math.random() * (30 + level * 5) + 4;
+      let x;
+      let y;
+      if (Math.random() < 0.5) {
+        x = Math.random() < 0.5 ? 0 - radius : canvas.width + radius;
+        y = Math.random() * canvas.height;
+      } else {
+        x = Math.random() * canvas.width;
+        y = Math.random() < 0.5 ? 0 - radius : canvas.height + radius;
+      }
+      // randomize color
+      const color = `hsl(${Math.random() * 360}, 50%, 50%)`;
 
-    const angle = Math.atan2(canvas.height / 2 - y, canvas.width / 2 - x);
-    const velocity = {
-      x: Math.cos(angle),
-      y: Math.sin(angle),
-    };
-    enemies.push(new Enamy(x, y, radius, color, velocity));
-  }, 1000);
+      const angle = Math.atan2(canvas.height / 2 - y, canvas.width / 2 - x);
+      const speed = level / 10 + 0.5;
+      const velocity = {
+        x: Math.cos(angle) * speed,
+        y: Math.sin(angle) * speed,
+      };
+      enemies.push(new Enamy(x, y, radius, color, velocity));
+    }
+  }, 2000 - level * 10);
 }
 
-let animationId;
-let score = 0;
 function animate() {
+  if (pause) {
+    pauseModalEl.style.display = "flex";
+    return;
+  }
   animationId = requestAnimationFrame(animate);
+  // Black Screen
   c.fillStyle = "rgba(0, 0, 0, 0.1)";
   c.fillRect(0, 0, canvas.width, canvas.height);
+  // Create Player
   player.draw();
   particles.forEach((particle, index) => {
     if (particle.alpha <= 0) {
@@ -226,6 +254,15 @@ function animate() {
           //remove from scene alltogether
           score += 250;
           scoreEl.innerHTML = score;
+          if (score > scorePerLvl * (level * 1.5)) {
+            level++;
+            lvlEl.innerHTML = level;
+            const data = {
+              currentLevel: level,
+              currentScore: score,
+            };
+            localStorage.setItem("data", JSON.stringify(data));
+          }
           // not to flash
           setTimeout(() => {
             // remove items
@@ -257,4 +294,53 @@ startGameBtn.addEventListener("click", () => {
   animate();
   spawnEnemies();
   modalEl.style.display = "none";
+});
+
+restartGameBtn.addEventListener("click", () => {
+  init("tryAgain");
+  animate();
+  spawnEnemies();
+  modalEl.style.display = "none";
+});
+
+pauseGameBtn.addEventListener("click", () => {
+  countEl.style.display = "none";
+  pause = !pause;
+  animate();
+});
+
+function doSetTimeout(i) {
+  setTimeout(function () {
+    alert(i);
+  }, i * 5000);
+}
+
+resumeGameBtn.addEventListener("click", () => {
+  resumeGameBtn.disabled = "true";
+  let secs = 3;
+  countEl.style.display = "inline-block";
+  countEl.innerText = "Resume In " + secs + "...";
+  for (let i = 1; i < 3; ++i) {
+    setTimeout(() => {
+      secs -= 1;
+      countEl.innerText = "Resume In " + secs + "...";
+    }, 1000 * i);
+  }
+  setTimeout(() => {
+    pause = !pause;
+    pauseModalEl.style.display = "none";
+    animate();
+    resumeGameBtn.disabled = "";
+  }, 3000);
+});
+
+window.addEventListener("keydown", (event) => {
+  if (event.code === "Space") {
+    countEl.style.display = "none";
+    pause = true;
+    pauseModalEl.style.display = "flex";
+    animate();
+  } else if (event.code === "Enter") {
+    resumeGameBtn.click();
+  }
 });
