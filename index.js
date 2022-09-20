@@ -6,6 +6,7 @@ canvas.height = innerHeight;
 
 const scoreEl = document.querySelector("#scoreEl");
 const lvlEl = document.querySelector("#lvlEl");
+const crystalEl = document.querySelector("#crystalEl");
 const startGameBtn = document.querySelector("#startGameBtn");
 const restartGameBtn = document.querySelector("#restartGameBtn");
 const modalEl = document.querySelector("#modalEl");
@@ -17,6 +18,49 @@ const countEl = document.querySelector("#countEl");
 pauseModalEl.style.display = "none";
 if (!localStorage.getItem("data")) {
   restartGameBtn.style.display = "none";
+}
+
+class Star {
+  constructor(x, y, spikes, outerRadius, innerRadius, velocity) {
+    this.x = x;
+    this.y = y;
+    this.spikes = spikes;
+    this.outerRadius = outerRadius;
+    this.innerRadius = innerRadius;
+    this.velocity = velocity;
+    this.rot = (Math.PI / 2) * 3;
+    this.step = Math.PI / spikes;
+  }
+
+  draw() {
+    c.strokeSyle = "#000";
+    c.beginPath();
+    c.moveTo(this.x, this.y - this.outerRadius);
+    for (let i = 0; i < this.spikes; i++) {
+      this.x = this.x + Math.cos(this.rot) * this.outerRadius;
+      this.y = this.y + Math.sin(this.rot) * this.outerRadius;
+      c.lineTo(this.x, this.y);
+      this.rot += this.step;
+
+      this.x = this.x + Math.cos(this.rot) * this.innerRadius;
+      this.y = this.y + Math.sin(this.rot) * this.innerRadius;
+      c.lineTo(this.x, this.y);
+      this.rot += this.step;
+    }
+    c.lineTo(this.x, this.y - this.outerRadius);
+    c.closePath();
+    c.lineWidth = 7;
+    c.strokeStyle = "pink";
+    c.stroke();
+    c.fillStyle = "skyblue";
+    c.fill();
+  }
+
+  update() {
+    this.draw();
+    this.x = this.x + this.velocity.x;
+    this.y = this.y + this.velocity.y;
+  }
 }
 
 class Player {
@@ -123,7 +167,12 @@ let pause = false;
 let animationId;
 let score = 0;
 let level = 1;
+let crystal = localStorage.getItem("crystal")
+  ? JSON.parse(localStorage.getItem("crystal"))
+  : 0;
 let scorePerLvl = 2000;
+let generateEnemy;
+let generateStar;
 
 function init(flg) {
   if (!flg) {
@@ -143,13 +192,14 @@ function init(flg) {
       : 1;
   scoreEl.innerHTML = score;
   lvlEl.innerHTML = level;
+  crystalEl.innerHTML = crystal;
   bigScoreEl.innerHTML = score;
 }
 
 function spawnEnemies() {
-  setInterval(() => {
+  generateEnemy = setInterval(() => {
     if (!pause) {
-      const radius = Math.random() * (30 + level * 5) + 4;
+      const radius = Math.random() * (30 + level * 3) + 4;
       let x;
       let y;
       if (Math.random() < 0.5) {
@@ -171,6 +221,33 @@ function spawnEnemies() {
       enemies.push(new Enamy(x, y, radius, color, velocity));
     }
   }, 2000 - level * 10);
+}
+
+function spawnStars() {
+  generateStar = setInterval(() => {
+    if (!pause) {
+      let x;
+      let y;
+      if (Math.random() < 0.5) {
+        x = Math.random() < 0.5 ? 0 : canvas.width;
+        y = Math.random() * canvas.height;
+      } else {
+        x = Math.random() * canvas.width;
+        y = Math.random() < 0.5 ? 0 : canvas.height;
+      }
+
+      const angle = Math.atan2(
+        canvas.height / 2 - y + Math.floor(Math.random() * 500) + 1,
+        canvas.width / 2 - x + Math.floor(Math.random() * 500) + 1
+      );
+      const speed = level / 10 + 0.5;
+      const velocity = {
+        x: Math.cos(angle) * speed,
+        y: Math.sin(angle) * speed,
+      };
+      enemies.push(new Star(x, y, 3, 10, 5, velocity));
+    }
+  }, 10000 - level * 30);
 }
 
 function animate() {
@@ -219,6 +296,8 @@ function animate() {
       restartGameBtn.style.display = "block";
       modalEl.style.display = "flex";
       bigScoreEl.innerHTML = score;
+      clearInterval(generateEnemy);
+      clearInterval(generateStar);
     }
 
     projectiles.forEach((projectile, projectileIndex) => {
@@ -226,6 +305,18 @@ function animate() {
       const dist = Math.hypot(projectile.x - enemy.x, projectile.y - enemy.y);
 
       // when projectiles touch enemy
+      if (!enemy.color) {
+        if (dist < 15) {
+          setTimeout(() => {
+            crystal++;
+            // remove items
+            enemies.splice(index, 1);
+            projectiles.splice(projectileIndex, 1);
+            crystalEl.innerHTML = crystal;
+            localStorage.setItem("crystal", crystal);
+          }, 0);
+        }
+      }
       if (dist - enemy.radius - projectile.radius < 1) {
         // create explosions
         for (let i = 0; i < enemy.radius * 2; i++) {
@@ -297,6 +388,7 @@ startGameBtn.addEventListener("click", () => {
   init();
   animate();
   spawnEnemies();
+  spawnStars();
   modalEl.style.display = "none";
 });
 
@@ -304,6 +396,7 @@ restartGameBtn.addEventListener("click", () => {
   init("tryAgain");
   animate();
   spawnEnemies();
+  spawnStars();
   modalEl.style.display = "none";
 });
 

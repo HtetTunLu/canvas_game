@@ -5,6 +5,7 @@
   body {
     margin: 0;
     background: black;
+    touch-action: none;
   }
 </style>
 <div class="fixed text-white text-sm ml-5 mt-1 select-none">
@@ -14,6 +15,10 @@
   </div>
   <span class="ml-3">Score: </span>
   <span id="scoreEl">0</span>
+  <div class="text-white ml-3 my-3">
+    <span>Crystal: </span>
+    <span id="crystalEl">0</span>
+  </div>
   <div>
     <button class="bg-red-700 w-24 py-2 my-3 rounded-full" id="pauseGameBtn">Pause</button>  
   </div>
