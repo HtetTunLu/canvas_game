@@ -126,6 +126,9 @@ let level = 1;
 let scorePerLvl = 2000;
 
 function init(flg) {
+  if (!flg) {
+    localStorage.removeItem("data");
+  }
   player = new Player(x, y, 10, "white");
   projectiles = [];
   enemies = [];
@@ -213,6 +216,7 @@ function animate() {
     // end game
     if (dist - enemy.radius - player.radius < 1) {
       cancelAnimationFrame(animationId);
+      restartGameBtn.style.display = "block";
       modalEl.style.display = "flex";
       bigScoreEl.innerHTML = score;
     }
