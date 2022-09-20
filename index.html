@@ -23,6 +23,15 @@
     <button class="bg-red-700 w-24 py-2 my-3 rounded-full" id="pauseGameBtn">Pause</button>  
   </div>
 </div>
+<div class="fixed inset-0 flex items-center justify-center" id="pauseModalEl">
+  <div class="bg-white max-w-md w-full p-6 text-center">
+    <h1 class="text-4xl font-medium text-red-800 leading-none pb-5">Game is Paused</h1>
+    <p class="text-sm text-gray-700 mb-4" id="countEl"></p>
+    <div>
+      <button class="bg-green-500 text-white w-full py-3 rounded-full" id="resumeGameBtn">Resume Game</button>
+    </div>
+  </div>
+</div>
 <div class="fixed inset-0 flex items-center justify-center" id="modalEl">
   <div class="bg-white max-w-md w-full p-6 text-center">
     <h1 class="text-4xl font-bold leading-none" id="bigScoreEl">0</h1>
@@ -30,15 +39,6 @@
     <div>
       <button class="bg-blue-500 text-white w-full py-3 rounded-full" id="startGameBtn">Start Game</button>
       <button class="bg-blue-500 text-white w-full py-3 mt-3 rounded-full" id="restartGameBtn">Try Again</button>
-    </div>
-  </div>
-</div>
-<div class="fixed inset-0 items-center justify-center" id="pauseModalEl">
-  <div class="bg-white max-w-md w-full p-6 text-center">
-    <h1 class="text-4xl font-medium text-red-800 leading-none pb-5">Game is Paused</h1>
-    <p class="text-sm text-gray-700 mb-4" id="countEl"></p>
-    <div>
-      <button class="bg-green-500 text-white w-full py-3 rounded-full" id="resumeGameBtn">Resume Game</button>
     </div>
   </div>
 </div>
