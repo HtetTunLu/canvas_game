@@ -15,6 +15,8 @@ const resumeGameBtn = document.querySelector("#resumeGameBtn");
 const bigScoreEl = document.querySelector("#bigScoreEl");
 const pauseGameBtn = document.querySelector("#pauseGameBtn");
 const countEl = document.querySelector("#countEl");
+const shieldEl = document.querySelector("#shield");
+const freezeEl = document.querySelector("#freeze2");
 pauseModalEl.style.display = "none";
 if (!localStorage.getItem("data")) {
   restartGameBtn.style.display = "none";
@@ -64,6 +66,22 @@ class Star {
 }
 
 class Player {
+  constructor(x, y, radius, color) {
+    this.x = x;
+    this.y = y;
+    this.radius = radius;
+    this.color = color;
+  }
+
+  draw() {
+    c.beginPath();
+    c.arc(this.x, this.y, this.radius, Math.PI * 2, false);
+    c.fillStyle = this.color;
+    c.fill();
+  }
+}
+
+class Shield {
   constructor(x, y, radius, color) {
     this.x = x;
     this.y = y;
@@ -160,6 +178,7 @@ const x = canvas.width / 2;
 const y = canvas.height / 2;
 
 let player = new Player(x, y, 10, "white");
+let shield = new Shield(x, y, 30, "rgba(255, 255, 255, 0.2)");
 let projectiles = [];
 let enemies = [];
 let particles = [];
@@ -173,6 +192,7 @@ let crystal = localStorage.getItem("crystal")
 let scorePerLvl = 2000;
 let generateEnemy;
 let generateStar;
+let onShield = false;
 
 function init(flg) {
   if (!flg) {
@@ -254,6 +274,12 @@ function animate() {
   if (pause) {
     pauseModalEl.style.display = "flex";
     return;
+  }
+  // Disable shield Icon when crystal not enough
+  shieldEl.style.opacity = crystal < 3 ? 0.5 : 1;
+  if (onShield) {
+    // Shield Create
+    shield.draw();
   }
   animationId = requestAnimationFrame(animate);
   // Black Screen
@@ -367,6 +393,39 @@ function animate() {
         }
       }
     });
+    if (onShield) {
+      // distance between shield and enemy
+      const shieldDist = Math.hypot(shield.x - enemy.x, shield.y - enemy.y);
+      if (shieldDist - enemy.radius - shield.radius < 1) {
+        // create explosions
+        for (let i = 0; i < enemy.radius * 2; i++) {
+          particles.push(
+            new Particle(enemy.x, enemy.y, Math.random() * 2, enemy.color, {
+              x: (Math.random() - 0.5) * (Math.random() * 6),
+              y: (Math.random() - 0.5) * (Math.random() * 6),
+            })
+          );
+        }
+        //remove from scene alltogether
+        score += 250;
+        scoreEl.innerHTML = score;
+        if (score > scorePerLvl * (level * 1.5)) {
+          level++;
+          lvlEl.innerHTML = level;
+          const data = {
+            currentLevel: level,
+            currentScore: score,
+          };
+          localStorage.setItem("data", JSON.stringify(data));
+        }
+        // not to flash
+        setTimeout(() => {
+          // remove items
+          enemies.splice(index, 1);
+          onShield = false;
+        }, 0);
+      }
+    }
   });
 }
 
@@ -412,6 +471,16 @@ function doSetTimeout(i) {
   }, i * 5000);
 }
 
+// When Shield Btn Click
+shieldEl.addEventListener("click", () => {
+  if (crystal >= 3) {
+    onShield = true;
+    crystal = crystal - 3;
+    crystalEl.innerHTML = crystal;
+    localStorage.setItem("crystal", crystal);
+  }
+});
+
 resumeGameBtn.addEventListener("click", () => {
   resumeGameBtn.disabled = "true";
   let secs = 3;
@@ -439,5 +508,11 @@ window.addEventListener("keydown", (event) => {
     animate();
   } else if (event.code === "Enter") {
     resumeGameBtn.click();
+  }
+  if (event.code === "KeyS" && crystal >= 3) {
+    onShield = true;
+    crystal = crystal - 3;
+    crystalEl.innerHTML = crystal;
+    localStorage.setItem("crystal", crystal);
   }
 });
