@@ -277,6 +277,8 @@ function animate() {
   }
   // Disable shield Icon when crystal not enough
   shieldEl.style.opacity = crystal < 3 ? 0.5 : 1;
+  // Disable Freeze Icon when crystal not enough
+  freezeEl.style.opacity = crystal < 10 ? 0.5 : 1;
   if (onShield) {
     // Shield Create
     shield.draw();
@@ -481,6 +483,22 @@ shieldEl.addEventListener("click", () => {
   }
 });
 
+// When Freeze Btn Click
+freezeEl.addEventListener("click", () => {
+  if (crystal >= 10) {
+    enemies.forEach((enemy) => {
+      if (enemy.color) {
+        (enemy.velocity.x = 0),
+          (enemy.velocity.y = 0),
+          (enemy.color = "rgba(126, 252, 225, 0.1)");
+      }
+    });
+    crystal = crystal - 10;
+    crystalEl.innerHTML = crystal;
+    localStorage.setItem("crystal", crystal);
+  }
+});
+
 resumeGameBtn.addEventListener("click", () => {
   resumeGameBtn.disabled = "true";
   let secs = 3;
@@ -501,6 +519,7 @@ resumeGameBtn.addEventListener("click", () => {
 });
 
 window.addEventListener("keydown", (event) => {
+  // Game pause
   if (event.code === "Space") {
     countEl.style.display = "none";
     pause = true;
@@ -509,9 +528,23 @@ window.addEventListener("keydown", (event) => {
   } else if (event.code === "Enter") {
     resumeGameBtn.click();
   }
+  // Shield On
   if (event.code === "KeyS" && crystal >= 3) {
     onShield = true;
     crystal = crystal - 3;
+    crystalEl.innerHTML = crystal;
+    localStorage.setItem("crystal", crystal);
+  }
+  // Freeze On
+  if (event.code === "KeyF" && crystal >= 10) {
+    enemies.forEach((enemy) => {
+      if (enemy.color) {
+        (enemy.velocity.x = 0),
+          (enemy.velocity.y = 0),
+          (enemy.color = "rgba(126, 252, 225, 1)");
+      }
+    });
+    crystal = crystal - 10;
     crystalEl.innerHTML = crystal;
     localStorage.setItem("crystal", crystal);
   }

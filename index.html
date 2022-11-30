@@ -2,7 +2,7 @@
   href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css"
   rel="stylesheet"
 />
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css" />
 <title>Canvas Game</title>
 <link rel="icon" type="image/x-icon" href="images/icon.ico" />
 <style>
@@ -31,12 +31,7 @@
   <div class="flip-box" id="shield">
     <div class="flip-box-inner">
       <div class="flip-box-front">
-        <img
-          src="images/shield.png"
-          alt="shield"
-          width="50px"
-          height="50px"
-        />
+        <img src="images/shield.png" alt="shield" width="50px" height="50px" />
       </div>
       <div class="flip-box-back">
         <h2>Shield</h2>
@@ -44,16 +39,23 @@
       </div>
     </div>
   </div>
-
-  <a id="freeze2">
-    <img
-      src="images/freeze2.png"
-      class="ml-5 mt-3"
-      alt="freeze2"
-      width="35px"
-      height="50px"
-    />
-  </a>
+  <div class="flip-box" id="freeze2">
+    <div class="flip-box-inner">
+      <div class="flip-box-front">
+        <img
+          src="images/freeze2.png"
+          style="margin-left: 5px; margin-top: 5px;"
+          alt="freeze2"
+          width="40px"
+          height="40px"
+        />
+      </div>
+      <div class="flip-box-back">
+        <h2>Freeze</h2>
+        <h4>"F"</h4>
+      </div>
+    </div>
+  </div>
 </div>
 <div class="fixed inset-0 flex items-center justify-center" id="pauseModalEl">
   <div class="bg-white max-w-md w-full p-6 text-center">
