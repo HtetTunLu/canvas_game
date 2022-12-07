@@ -17,6 +17,7 @@ const pauseGameBtn = document.querySelector("#pauseGameBtn");
 const countEl = document.querySelector("#countEl");
 const shieldEl = document.querySelector("#shield");
 const freezeEl = document.querySelector("#freeze2");
+const rocketEl = document.querySelector("#rocket");
 pauseModalEl.style.display = "none";
 if (!localStorage.getItem("data")) {
   restartGameBtn.style.display = "none";
@@ -77,7 +78,13 @@ class Player {
     c.beginPath();
     c.arc(this.x, this.y, this.radius, Math.PI * 2, false);
     c.fillStyle = this.color;
-    c.fill();
+    if (isRocket) {
+      const abcd = new Image(40, 40);
+      abcd.src = "images/redcircle.png";
+      c.drawImage(abcd, this.x - 20, this.y - 20, 40, 40);
+    } else {
+      c.fill();
+    }
   }
 }
 
@@ -110,7 +117,13 @@ class Projectile {
     c.beginPath();
     c.arc(this.x, this.y, this.radius, Math.PI * 2, false);
     c.fillStyle = this.color;
-    c.fill();
+    if (isRocket) {
+      const abcd = new Image(40, 40);
+      abcd.src = "images/redcircle.png";
+      c.drawImage(abcd, this.x - 20, this.y - 20, 40, 40);
+    } else {
+      c.fill();
+    }
   }
 
   update() {
@@ -193,6 +206,7 @@ let scorePerLvl = 2000;
 let generateEnemy;
 let generateStar;
 let onShield = false;
+let isRocket = false;
 
 function init(flg) {
   if (!flg) {
@@ -276,9 +290,11 @@ function animate() {
     return;
   }
   // Disable shield Icon when crystal not enough
-  shieldEl.style.opacity = crystal < 3 ? 0.5 : 1;
+  shieldEl.style.opacity = crystal < 2 ? 0.5 : 1;
   // Disable Freeze Icon when crystal not enough
-  freezeEl.style.opacity = crystal < 10 ? 0.5 : 1;
+  freezeEl.style.opacity = crystal < 5 ? 0.5 : 1;
+  // Disable Rocket Icon when crystal not enough
+  rocketEl.style.opacity = crystal < 10 ? 0.5 : 1;
   if (onShield) {
     // Shield Create
     shield.draw();
@@ -361,7 +377,7 @@ function animate() {
             )
           );
         }
-        if (enemy.radius - 10 > 5) {
+        if (enemy.radius - 10 > 5 && !isRocket) {
           // increase Score
           score += 100;
           scoreEl.innerHTML = score;
@@ -475,9 +491,9 @@ function doSetTimeout(i) {
 
 // When Shield Btn Click
 shieldEl.addEventListener("click", () => {
-  if (crystal >= 3) {
+  if (crystal >= 2) {
     onShield = true;
-    crystal = crystal - 3;
+    crystal = crystal - 2;
     crystalEl.innerHTML = crystal;
     localStorage.setItem("crystal", crystal);
   }
@@ -485,7 +501,7 @@ shieldEl.addEventListener("click", () => {
 
 // When Freeze Btn Click
 freezeEl.addEventListener("click", () => {
-  if (crystal >= 10) {
+  if (crystal >= 5) {
     enemies.forEach((enemy) => {
       if (enemy.color) {
         (enemy.velocity.x = 0),
@@ -493,6 +509,19 @@ freezeEl.addEventListener("click", () => {
           (enemy.color = "rgba(126, 252, 225, 0.1)");
       }
     });
+    crystal = crystal - 5;
+    crystalEl.innerHTML = crystal;
+    localStorage.setItem("crystal", crystal);
+  }
+});
+
+// When Rocket Btn Click
+rocketEl.addEventListener("click", () => {
+  if (crystal >= 10) {
+    isRocket = true;
+    setTimeout(function () {
+      isRocket = false;
+    }, 5000);
     crystal = crystal - 10;
     crystalEl.innerHTML = crystal;
     localStorage.setItem("crystal", crystal);
@@ -529,14 +558,14 @@ window.addEventListener("keydown", (event) => {
     resumeGameBtn.click();
   }
   // Shield On
-  if (event.code === "KeyS" && crystal >= 3) {
+  if (event.code === "KeyS" && crystal >= 2) {
     onShield = true;
-    crystal = crystal - 3;
+    crystal = crystal - 2;
     crystalEl.innerHTML = crystal;
     localStorage.setItem("crystal", crystal);
   }
   // Freeze On
-  if (event.code === "KeyF" && crystal >= 10) {
+  if (event.code === "KeyF" && crystal >= 5) {
     enemies.forEach((enemy) => {
       if (enemy.color) {
         (enemy.velocity.x = 0),
@@ -544,6 +573,16 @@ window.addEventListener("keydown", (event) => {
           (enemy.color = "rgba(126, 252, 225, 1)");
       }
     });
+    crystal = crystal - 5;
+    crystalEl.innerHTML = crystal;
+    localStorage.setItem("crystal", crystal);
+  }
+  // Rocket On
+  if (event.code === "KeyR" && crystal >= 10) {
+    isRocket = true;
+    setTimeout(function () {
+      isRocket = false;
+    }, 10000);
     crystal = crystal - 10;
     crystalEl.innerHTML = crystal;
     localStorage.setItem("crystal", crystal);
