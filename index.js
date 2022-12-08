@@ -18,6 +18,7 @@ const countEl = document.querySelector("#countEl");
 const shieldEl = document.querySelector("#shield");
 const freezeEl = document.querySelector("#freeze2");
 const rocketEl = document.querySelector("#rocket");
+const nuclearEl = document.querySelector("#nuclear");
 pauseModalEl.style.display = "none";
 if (!localStorage.getItem("data")) {
   restartGameBtn.style.display = "none";
@@ -79,9 +80,9 @@ class Player {
     c.arc(this.x, this.y, this.radius, Math.PI * 2, false);
     c.fillStyle = this.color;
     if (isRocket) {
-      const abcd = new Image(40, 40);
-      abcd.src = "images/redcircle.png";
-      c.drawImage(abcd, this.x - 20, this.y - 20, 40, 40);
+      const img = new Image(40, 40);
+      img.src = "images/redcircle.png";
+      c.drawImage(img, this.x - 20, this.y - 20, 40, 40);
     } else {
       c.fill();
     }
@@ -118,9 +119,9 @@ class Projectile {
     c.arc(this.x, this.y, this.radius, Math.PI * 2, false);
     c.fillStyle = this.color;
     if (isRocket) {
-      const abcd = new Image(40, 40);
-      abcd.src = "images/redcircle.png";
-      c.drawImage(abcd, this.x - 20, this.y - 20, 40, 40);
+      const img = new Image(40, 40);
+      img.src = "images/redcircle.png";
+      c.drawImage(img, this.x - 20, this.y - 20, 40, 40);
     } else {
       c.fill();
     }
@@ -295,6 +296,8 @@ function animate() {
   freezeEl.style.opacity = crystal < 5 ? 0.5 : 1;
   // Disable Rocket Icon when crystal not enough
   rocketEl.style.opacity = crystal < 10 ? 0.5 : 1;
+  // Disable Nuclear Icon when crystal not enough
+  nuclearEl.style.opacity = crystal < 15 ? 0.5 : 1;
   if (onShield) {
     // Shield Create
     shield.draw();
@@ -528,6 +531,53 @@ rocketEl.addEventListener("click", () => {
   }
 });
 
+// When Nuclear Btn Click
+nuclearEl.addEventListener("click", () => {
+  if (crystal >= 15) {
+    enemies.forEach((newEnemy) => {
+      // create explosions
+      for (let i = 0; i < newEnemy.radius * 2; i++) {
+        if (newEnemy.spikes === undefined) {
+          particles.push(
+            new Particle(
+              newEnemy.x,
+              newEnemy.y,
+              Math.random() * 2,
+              newEnemy.color,
+              {
+                x: (Math.random() - 0.5) * (Math.random() * 6),
+                y: (Math.random() - 0.5) * (Math.random() * 6),
+              }
+            )
+          );
+        }
+      }
+      //remove from scene alltogether
+      score += 250;
+      scoreEl.innerHTML = score;
+      if (score > scorePerLvl * (level * 1.5)) {
+        level++;
+        lvlEl.innerHTML = level;
+        const data = {
+          currentLevel: level,
+          currentScore: score,
+        };
+        localStorage.setItem("data", JSON.stringify(data));
+      }
+      // not to flash
+      setTimeout(() => {
+        // remove items without stars
+        enemies = enemies.filter((e) => {
+          return e.spikes !== undefined;
+        });
+      }, 0);
+    });
+    crystal = crystal - 15;
+    crystalEl.innerHTML = crystal;
+    localStorage.setItem("crystal", crystal);
+  }
+});
+
 resumeGameBtn.addEventListener("click", () => {
   resumeGameBtn.disabled = "true";
   let secs = 3;
@@ -584,6 +634,51 @@ window.addEventListener("keydown", (event) => {
       isRocket = false;
     }, 10000);
     crystal = crystal - 10;
+    crystalEl.innerHTML = crystal;
+    localStorage.setItem("crystal", crystal);
+  }
+
+  // Nuclear On
+  if (event.code === "KeyN" && crystal >= 0) {
+    enemies.forEach((newEnemy) => {
+      // create explosions
+      for (let i = 0; i < newEnemy.radius * 2; i++) {
+        if (newEnemy.spikes === undefined) {
+          particles.push(
+            new Particle(
+              newEnemy.x,
+              newEnemy.y,
+              Math.random() * 2,
+              newEnemy.color,
+              {
+                x: (Math.random() - 0.5) * (Math.random() * 6),
+                y: (Math.random() - 0.5) * (Math.random() * 6),
+              }
+            )
+          );
+        }
+      }
+      //remove from scene alltogether
+      score += 250;
+      scoreEl.innerHTML = score;
+      if (score > scorePerLvl * (level * 1.5)) {
+        level++;
+        lvlEl.innerHTML = level;
+        const data = {
+          currentLevel: level,
+          currentScore: score,
+        };
+        localStorage.setItem("data", JSON.stringify(data));
+      }
+      // not to flash
+      setTimeout(() => {
+        // remove items without stars
+        enemies = enemies.filter((e) => {
+          return e.spikes !== undefined;
+        });
+      }, 0);
+    });
+    crystal = crystal - 0;
     crystalEl.innerHTML = crystal;
     localStorage.setItem("crystal", crystal);
   }
